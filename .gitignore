@@ -3,7 +3,6 @@
 _pycache_
 
 # My configurations:
-data/
 weights/
 .vscode/
 .debug.py
