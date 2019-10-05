@@ -1,7 +1,11 @@
+import os
+
 from utils.config import opt
 from dataloaders.datasets import Datasets
-
+from model import FasterRCNNVGG16
 from torch.utils.data import Dataloader
+import multiprocessing
+multiprocessing.set_start_method('spawn', True)
 
 
 class Trainer(object):
@@ -18,10 +22,11 @@ class Trainer(object):
                                        shuffle=True,
                                        num_workers=opt.num_workers)
         self.num_batch = len(self.train_loader)
+        print("load data")
 
         # Define Network
         # initilize the network here.
- 
+        fater_rcnn = FasterRCNNVGG16()
         # Define Optimizer
 
         # Define Criterion
