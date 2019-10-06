@@ -37,6 +37,7 @@ class Config:
     # training
     epoch = 14
 
+    use_mgpu = True
     use_adam = False  # Use Adam optimizer
     use_chainer = False  # try match everything as chairs
     use_drop = False  # use dropout in RoIHead

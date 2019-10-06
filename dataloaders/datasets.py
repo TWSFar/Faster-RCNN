@@ -126,14 +126,18 @@ def getitem(self, index):
     img = np.ascontiguousarray(img, dtype=np.float32)
     img = normalize(img)
 
-    target_out = torch.zeros((nL, 5))
+    bboxes = torch.zeros((nL, 4))
+    labels = torch.zeros((nL, 1))
     if nL:
-        target_out[:, :] = torch.from_numpy(target)
+        bboxes[:, :] = torch.from_numpy(target[:, :4])
+        labels[:, :] = torch.from_numpy(target[:, 4:5])
 
     img = torch.from_numpy(img).float()
-    target_out = target_out.float()
+    bboxes, labels = bboxes.float(), labels.float()
+    scale = (self.input_size[0] / scrimg_shape[0],
+             self.input_size[1] / scrimg_shape[1])
 
-    return img, target_out, scrimg_shape, img_path
+    return img, bboxes, labels, scale
 
 
 class HKB(Dataset):
