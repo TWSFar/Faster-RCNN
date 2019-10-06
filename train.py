@@ -62,6 +62,7 @@ class Trainer(object):
             bbox = bbox_.to(self.device)
             label = label_.tp(self.device)
             trainer.train_step(img, bbox, label, scale)
+            
 
 
 def main():
