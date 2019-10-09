@@ -7,9 +7,9 @@ from mypath import Path
 
 class Config:
     # data
-    # min_size = 600
-    # max_size = 1000
-    input_size = (1000, 1000)
+    min_size = 600
+    max_size = 1000
+    input_size = (1000, 800)
     num_workers = 8
     test_num_workes = 8
     batch_size = 1
@@ -43,7 +43,7 @@ class Config:
     use_drop = False  # use dropout in RoIHead
 
     # debug
-    debug_file = "/tmp/debug"
+    debug_file = "tmp/debug"
 
     test_num = 10000
 

@@ -39,9 +39,9 @@ class ProposalTargetCreator(object):
         self.neg_iou_thresh_hi = neg_iou_thresh_hi
         self.neg_iou_thresh_lo = neg_iou_thresh_lo
 
-    def __call_(self, roi, bbox, label,
-                loc_normalize_mean=(0., 0., 0., 0.),
-                loc_normalize_std=(0.1, 0.1, 0.2, 0.2)):
+    def __call__(self, roi, bbox, label,
+                 loc_normalize_mean=(0., 0., 0., 0.),
+                 loc_normalize_std=(0.1, 0.1, 0.2, 0.2)):
         """Assigns ground truth to sampled proposals.
 
         This function samples total of :obj:`self.n_sample` RoIs
@@ -202,7 +202,7 @@ class AnchorTargetCreator(object):
         n_anchor = len(anchor)
         inside_index = _get_inside_index(anchor, img_H, img_W)
         anchor = anchor[inside_index]
-        argmax_ious, label = self._creat_label(
+        argmax_ious, label = self._create_label(
             inside_index, anchor, bbox)
 
         # compute bounding box regression targets
@@ -306,7 +306,7 @@ class ProposalCreator:
         self.min_size = min_size
 
     def __call__(self, loc, score,
-                 anchor, img_size, scale=1.):
+                 anchor, img_size, scale=(1., 1.)):
         """input should  be ndarray
         Propose RoIs.
 
@@ -352,10 +352,17 @@ class ProposalCreator:
         roi = loc2bbox(anchor, loc)
 
         # Clip predicted boxes with either height or width < threshold
-        min_size = self.min_size * scale
+        roi[:, slice(0, 4, 2)] = np.clip(
+            roi[:, slice(0, 4, 2)], 0, img_size[0])
+        roi[:, slice(1, 4, 2)] = np.clip(
+            roi[:, slice(1, 4, 2)], 0, img_size[1])
+
+        # Remove predicted boxes with either height or width < threshold.
+        min_size_h = self.min_size * scale[0]
+        min_size_w = self.min_size * scale[1]
         hs = roi[:, 2] - roi[:, 0]
         ws = roi[:, 3] - roi[:, 1]
-        keep = np.where((hs >= min_size) & (ws >= min_size))[0]
+        keep = np.where((hs >= min_size_h) & (ws >= min_size_w))[0]
         roi = roi[keep, :]
         score = score[keep]
 

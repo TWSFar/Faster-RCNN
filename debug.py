@@ -1,11 +1,13 @@
-class test():
-    def __init__(self):
-        self.a = 3
-    
-    def fun(self):
-        self.a = 5
-        return self
+import os
+import torch
+import os.path as osp
+from torch.utils import data
+from torchnet.meter import ConfusionMeter, AverageValueMeter
 
-t = test()
-t.fun()
+m = ConfusionMeter(3)
+p = torch.tensor([[0.3, 0.7, 0.1], [0.7, 0.2, 0.9], [0.9, 0.2, 1]])
+t = torch.tensor([0, 1, 1])
+m.add(p, t)
+
+n = m.value()
 pass

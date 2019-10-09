@@ -2,11 +2,11 @@ class Path(object):
     @staticmethod
     def db_root_dir(dataset):
         if dataset == 'voc':
-            return 'G:\\CV\\Reading\\Faster-RCNN\\data\\VOC2012'
+            return '/home/twsf/work/Faster-RCNN/data/VOC2012'
         elif dataset == 'visdrone':
-            return 'G:\\CV\\Reading\\Faster-RCNN\\data\\VisDrone'
+            return '/home/twsf/work/Faster-RCNN/data/VisDrone'
         elif dataset == 'hkb':
-            return 'G:\\CV\\Reading\\Faster-RCNN\\data\\HKB'
+            return '/home/twsf/work/Faster-RCNN/data/HKB'
         else:
             print('Dataset {} not available.'.format(dataset))
             raise NotImplementedError

@@ -159,17 +159,6 @@ def random_flip(img, labels, px=0.5):
     return img, labels
 
 
-def normalize(img, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
-    """
-    norm = (x - mean) / std
-    """
-    img = img / 255.0
-    mean = np.array(mean)
-    std = np.array(std)
-    img = (img - mean[:, np.newaxis, np.newaxis]) / std[:, np.newaxis, np.newaxis]
-    return img.astype(np.float32)
-
-
 def random_color_distort(src, brightness_delta=32, contrast_low=0.5, contrast_high=1.5,
                          saturation_low=0.5, saturation_high=1.5, hue_delta=18):
     """gluoncv/data/transforms/experimental/image.py
@@ -460,14 +449,15 @@ def train_transforms(img, target, input_size):
     # pad and resize
     if input_size[0] == input_size[1]:
         img, target = letterbox(img, target, input_size, mode='train')
+        img, target = random_affine(img, target, degrees=(-5, 5), translate=(0.10, 0.10), scale=(0.90, 1.10))
     else:
         img, target[:, :4] = rect_input_resize(img, target[:, :4], input_size)
     # Augment image and target
-    img, target = random_affine(img, target, degrees=(-5, 5), translate=(0.10, 0.10), scale=(0.90, 1.10))
     # random left-right flip
     img, target = random_flip(img, target, 0.5)
     # color distort
     # img = random_color_distort(img)
+    img = normalize(img)
 
     return img, target
 
@@ -478,5 +468,5 @@ def test_transforms(img, target, input_size):
         img, target = letterbox(img, target, input_size, mode='test')
     else:
         img, target[:, :4] = rect_input_resize(img, target[:, :4], input_size)
-
+    img = normalize(img)
     return img, target

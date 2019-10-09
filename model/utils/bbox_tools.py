@@ -22,7 +22,7 @@ def loc2bbox(src_bbox, loc):
     h = np.exp(dh) * src_height[:, np.newaxis]
     w = np.exp(dw) * src_height[:, np.newaxis]
 
-    dst_bbox = np.zeros(loc.shape, dtype=loc.type)
+    dst_bbox = np.zeros(loc.shape, dtype=loc.dtype)
     dst_bbox[:, 0::4] = ctr_y - 0.5 * h
     dst_bbox[:, 1::4] = ctr_x - 0.5 * w
     dst_bbox[:, 2::4] = ctr_y + 0.5 * h

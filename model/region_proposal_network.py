@@ -25,7 +25,7 @@ class RegionProposalNetwork(nn.Module):
         normal_init(self.score, 0, 0.01)
         normal_init(self.loc, 0, 0.01)
 
-    def forward(self, x, img_size, scale=1):
+    def forward(self, x, img_size, scale=(1, 1)):
         n, _, hh, ww = x.shape
         anchor = _enumerate_shifted_anchor(
             np.array(self.anchor_base),
@@ -37,7 +37,7 @@ class RegionProposalNetwork(nn.Module):
         rpn_locs = self.loc(h)
         rpn_locs = rpn_locs.permute(0, 2, 3, 1).contiguous().view(n, -1, 4)
         rpn_scores = self.score(h)
-        rpn_scores = rpn_scores.permute(0, 2, 3, 1).cocontiguous()
+        rpn_scores = rpn_scores.permute(0, 2, 3, 1).contiguous()
         rpn_softmax_scores = F.softmax(rpn_scores.view(n, hh, ww, n_anchor, 2), dim=4)
         rpn_fg_scores = rpn_softmax_scores[..., 1].contiguous()
         rpn_fg_scores = rpn_fg_scores.view(n, -1)

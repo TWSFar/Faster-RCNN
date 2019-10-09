@@ -8,16 +8,16 @@ import numpy as np
 def tonumpy(data):
     if isinstance(data, np.ndarray):
         return data
-    elif isinstance(data, t.Tensor):
+    if isinstance(data, t.Tensor):
         return data.detach().cpu().numpy()
 
 
 def totensor(data, cuda=True):
     if isinstance(data, np.ndarray):
         tensor = t.from_numpy(data)
-    elif isinstance(data, t.Tensor):
+    if isinstance(data, t.Tensor):
         tensor = data.detach()
-    elif cuda:
+    if cuda:
         tensor = tensor.cuda()
     return tensor
 

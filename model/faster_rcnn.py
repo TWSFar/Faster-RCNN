@@ -1,6 +1,21 @@
 import torch
 import torch.nn as nn
+import numpy as np
+import  cupy as cp
 from utils.config import opt
+from utils import array_tool as at
+from model.utils.bbox_tools import loc2bbox
+from model.utils.nms import non_maximum_suppression
+
+from torch import nn
+from dataloaders.rcnn_transforms import preprocess
+
+
+def nograd(f):
+    def new_f(*args, **kwargs):
+        with torch.no_grad():
+            return f(*args, **kwargs)
+    return new_f
 
 
 class FasterRCNN(nn.Module):
@@ -125,6 +140,80 @@ class FasterRCNN(nn.Module):
             self.score_thresh = 0.05
         else:
             raise ValueError('preset must be visualize or evaluate')
+
+    @nograd
+    def predict(self, imgs, sizes=None, visualize=False):
+        """Detect objects from images.
+
+        This method predicts objects for each image.
+
+        Args:
+            imgs (iterable of numpy.ndarray): Arrays holding images.
+                All images are in CHW and RGB format
+                and the range of their value is :math:`[0, 255]`.
+
+        Returns:
+           tuple of lists:
+           This method returns a tuple of three lists,
+           :obj:`(bboxes, labels, scores)`.
+
+           * **bboxes**: A list of float arrays of shape :math:`(R, 4)`, \
+               where :math:`R` is the number of bounding boxes in a image. \
+               Each bouding box is organized by \
+               :math:`(y_{min}, x_{min}, y_{max}, x_{max})` \
+               in the second axis.
+           * **labels** : A list of integer arrays of shape :math:`(R,)`. \
+               Each value indicates the class of the bounding box. \
+               Values are in range :math:`[0, L - 1]`, where :math:`L` is the \
+               number of the foreground classes.
+           * **scores** : A list of float arrays of shape :math:`(R,)`. \
+               Each value indicates how confident the prediction is.
+
+        """
+        self.eval()
+        if visualize:
+            self.use_preset('visualize')
+            prepared_imgs = list()
+            sizes = list()
+            for img in imgs:
+                size = img.shape[1:]
+                img = preprocess(at.tonumpy(img))
+                prepared_imgs.append(img)
+                sizes.append(size)
+        else:
+            prepared_imgs = imgs
+        bboxes = list()
+        labels = list()
+        scores = list()
+        for img, size in zip(prepared_imgs, sizes):
+            img = at.totensor(img[None]).float()
+            scale = img.shape[3] / size[1]
+            roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+            # We are assuming that batch size is 1.
+            roi_scores = roi_scores.data
+            roi_cls_loc = roi_cls_loc.data
+            roi = at.totensor(rois) / scale
+
+            # Convert predictions to bounding boxes in image coordinates.
+            # Bounding boxes are scaled to the scale of the input images.
+            mean = torch.Tensor(self.loc_normalize_mean).cuda(). \
+                repeat(self.n_class)[None]
+            std = torch.Tensor(self.loc_normalize_std).cuda(). \
+                repeat(self.n_class)[None]
+
+            roi_cls_loc = (roi_cls_loc * std + mean)
+            roi_cls_loc = roi_cls_loc.view(-1, self.n_class, 4)
+            roi = roi.view(-1, 1, 4).expand_as(roi_cls_loc)
+            cls_bbox = loc2bbox(at.tonumpy(roi).reshape((-1, 4)),
+                                at.tonumpy(roi_cls_loc).reshape((-1, 4)))
+            cls_bbox = at.totensor(cls_bbox)
+            cls_bbox = cls_bbox.view(-1, self.n_class * 4)
+            cls_bbox = at.totensor(cls_bbox)
+            cls_bbox = cls_bbox.view(-1, self.n_class * 4)
+
+
+
+
 
     def get_optimizer(self):
         """return optimizer, It could be overwriten if
